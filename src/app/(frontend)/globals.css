@@ -1,0 +1,294 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@plugin '@tailwindcss/typography';
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * 设计规范：蓝白主色 + 静态毛玻璃
+ * 玻璃只用于浮在内容上方的导航层（导航栏、搜索、筛选、分类、价格卡、弹出层），
+ * 卡片和正文等内容层保持实心。设计稿见 docs/design.md。
+ */
+:root {
+  /* shadcn/ui 基础色 */
+  --background: #f2f5fa;
+  --foreground: #121722;
+  --card: #ffffff;
+  --card-foreground: #121722;
+  --popover: #ffffff;
+  --popover-foreground: #121722;
+  --primary: #0b6bf5;
+  --primary-foreground: #ffffff;
+  --secondary: #e9edf4;
+  --secondary-foreground: #121722;
+  --muted: #eef2f8;
+  --muted-foreground: #667085;
+  --accent: #eaf1fd;
+  --accent-foreground: #121722;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: #e3e8f0;
+  --input: #dde3ec;
+  --ring: #0b6bf5;
+  --radius: 0.875rem;
+
+  /* 文字层级 */
+  --ink-2: #4b5565;
+
+  /* 品牌与语义色 */
+  --brand-text: #0a5bd6;
+  --brand-soft: rgb(11 107 245 / 0.1);
+  --brand-glow: rgb(11 107 245 / 0.4);
+  --credit: #b45309;
+  --credit-soft: rgb(245 158 11 / 0.14);
+  --free: #047857;
+  --free-soft: rgb(16 185 129 / 0.13);
+
+  /* 分段控件、代码块 */
+  --seg-track: rgb(18 23 34 / 0.06);
+  --seg-on: #ffffff;
+  --code-bg: #f5f7fb;
+
+  /* 内容层卡片 */
+  --card-line: rgb(18 23 34 / 0.06);
+  --card-shadow: 0 1px 2px rgb(18 23 34 / 0.04), 0 12px 32px -16px rgb(20 50 110 / 0.2);
+
+  /* 玻璃材质：薄 / 常规 / 厚 */
+  --glass-thin: rgb(255 255 255 / 0.4);
+  --glass: rgb(255 255 255 / 0.58);
+  --glass-thick: rgb(255 255 255 / 0.8);
+  --glass-solid: rgb(255 255 255 / 0.94);
+  --glass-edge: rgb(255 255 255 / 0.78);
+  --glass-hi: rgb(255 255 255 / 0.95);
+  --glass-dark-edge: rgb(16 40 90 / 0.12);
+  --glass-shadow: 0 14px 40px -14px rgb(20 50 110 / 0.24);
+
+  /* 背景色块 */
+  --blob-1: rgb(96 165 250 / 0.55);
+  --blob-2: rgb(103 232 249 / 0.42);
+  --blob-3: rgb(191 219 254 / 0.75);
+}
+
+.dark {
+  --background: #090c12;
+  --foreground: #f2f5fa;
+  --card: #131923;
+  --card-foreground: #f2f5fa;
+  --popover: #151b26;
+  --popover-foreground: #f2f5fa;
+  --primary: #0b6bf5;
+  --primary-foreground: #ffffff;
+  --secondary: #1b2230;
+  --secondary-foreground: #f2f5fa;
+  --muted: #161c27;
+  --muted-foreground: #8f99ab;
+  --accent: #1a2230;
+  --accent-foreground: #f2f5fa;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #222a38;
+  --input: #262f3f;
+  --ring: #3b8bff;
+
+  --ink-2: #aeb6c4;
+
+  --brand-text: #6eb1ff;
+  --brand-soft: rgb(80 160 255 / 0.16);
+  --brand-glow: rgb(11 107 245 / 0.55);
+  --credit: #fbbf24;
+  --credit-soft: rgb(251 191 36 / 0.14);
+  --free: #34d399;
+  --free-soft: rgb(52 211 153 / 0.13);
+
+  --seg-track: rgb(255 255 255 / 0.07);
+  --seg-on: rgb(255 255 255 / 0.14);
+  --code-bg: #0e131b;
+
+  --card-line: rgb(255 255 255 / 0.06);
+  --card-shadow: inset 0 1px 0 rgb(255 255 255 / 0.03), 0 12px 32px -16px rgb(0 0 0 / 0.7);
+
+  --glass-thin: rgb(26 32 44 / 0.36);
+  --glass: rgb(26 32 44 / 0.55);
+  --glass-thick: rgb(26 32 44 / 0.8);
+  --glass-solid: rgb(22 28 39 / 0.96);
+  --glass-edge: rgb(255 255 255 / 0.12);
+  --glass-hi: rgb(255 255 255 / 0.2);
+  --glass-dark-edge: rgb(0 0 0 / 0.55);
+  --glass-shadow: 0 16px 44px -16px rgb(0 0 0 / 0.75);
+
+  --blob-1: rgb(29 78 216 / 0.5);
+  --blob-2: rgb(8 145 178 / 0.38);
+  --blob-3: rgb(30 64 175 / 0.4);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ink-2: var(--ink-2);
+  --color-brand: var(--brand-text);
+  --color-brand-soft: var(--brand-soft);
+  --color-credit: var(--credit);
+  --color-credit-soft: var(--credit-soft);
+  --color-free: var(--free);
+  --color-free-soft: var(--free-soft);
+  --color-card-line: var(--card-line);
+  --color-seg-track: var(--seg-track);
+  --color-seg-on: var(--seg-on);
+  --color-code: var(--code-bg);
+  --radius-sm: calc(var(--radius) - 6px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  /* 系统字体优先：苹果设备是苹方，和 iOS 观感一致；不依赖 Google Fonts */
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'PingFang SC', 'HarmonyOS Sans SC', 'MiSans', 'Segoe UI',
+    'Microsoft YaHei', 'Noto Sans CJK SC', 'Noto Sans SC', sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    color-scheme: light;
+  }
+
+  .dark {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+/* 玻璃材质。每档 = 半透明底 + 背景模糊 + 顶部亮线 + 外圈 0.5px 暗边 + 投影 */
+@utility glass-thin {
+  background: var(--glass-thin);
+  -webkit-backdrop-filter: blur(16px) saturate(170%);
+  backdrop-filter: blur(16px) saturate(170%);
+  border: 1px solid var(--glass-edge);
+  box-shadow:
+    0 0 0 0.5px var(--glass-dark-edge),
+    inset 0 1px 0 var(--glass-hi);
+}
+
+@utility glass {
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--glass-edge);
+  box-shadow:
+    0 0 0 0.5px var(--glass-dark-edge),
+    inset 0 1px 0 var(--glass-hi),
+    var(--glass-shadow);
+}
+
+@utility glass-thick {
+  background: var(--glass-thick);
+  -webkit-backdrop-filter: blur(32px) saturate(160%);
+  backdrop-filter: blur(32px) saturate(160%);
+  border: 1px solid var(--glass-edge);
+  box-shadow:
+    0 0 0 0.5px var(--glass-dark-edge),
+    inset 0 1px 0 var(--glass-hi),
+    var(--glass-shadow);
+}
+
+/* 内容层卡片：实心 */
+@utility surface {
+  background: var(--card);
+  border: 1px solid var(--card-line);
+  box-shadow: var(--card-shadow);
+}
+
+/* 分段控件里被选中的那一格 */
+@utility seg-on {
+  background: var(--seg-on);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.08),
+    0 3px 10px -3px rgb(0 0 0 / 0.12);
+}
+
+/* 主按钮的顶部高光和蓝色光晕 */
+@utility btn-glow {
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.28),
+    0 8px 20px -8px var(--brand-glow);
+}
+
+/* 应用图标式的圆角方块 */
+@utility icon-tile {
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.45),
+    inset 0 -1px 0 rgb(0 0 0 / 0.1),
+    0 0 0 0.5px rgb(0 0 0 / 0.14),
+    0 6px 14px -6px rgb(0 0 0 / 0.35);
+}
+
+@utility link-underline {
+  @apply relative after:absolute after:bottom-0 after:left-0 after:h-px after:w-full after:origin-bottom-right after:scale-x-0 after:bg-current after:transition-transform after:duration-300 after:ease-in-out hover:after:origin-bottom-left hover:after:scale-x-100;
+}
+
+@layer utilities {
+  /* 顶栏在内容滚到下面时更不透明，保证文字可读（iOS 27 的做法） */
+  .glass-scrolled {
+    background: var(--glass-thick);
+  }
+
+  /* 浏览器不支持背景模糊：换成接近实心的底色 */
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .glass-thin,
+    .glass,
+    .glass-thick {
+      background: var(--glass-solid);
+    }
+  }
+
+  /* 系统开了“降低透明度”：玻璃换成实心 */
+  @media (prefers-reduced-transparency: reduce) {
+    .glass-thin,
+    .glass,
+    .glass-thick {
+      background: var(--glass-solid);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
+
+  /* 系统开了“增强对比度”：边缘加深 */
+  @media (prefers-contrast: more) {
+    .glass-thin,
+    .glass,
+    .glass-thick {
+      background: var(--glass-solid);
+      border-color: var(--border);
+    }
+  }
+}

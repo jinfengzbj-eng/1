@@ -22,6 +22,8 @@ export type ListingCardData = {
   featured: boolean
   price: number
   badge: AiTool['badge'] | null
+  /** MCP 服务提供的工具数量，AI 工具为 0 */
+  toolsCount: number
 }
 
 export const getPayloadClient = cache(async () => getPayload({ config }))
@@ -62,6 +64,7 @@ export function toCard(doc: McpServer | AiTool, kind: ListingKind): ListingCardD
     featured: !!doc.featured,
     price: kind === 'mcp' ? (doc as McpServer).creditsPerCall : (doc as AiTool).creditsPerUse,
     badge: kind === 'tool' ? ((doc as AiTool).badge ?? null) : null,
+    toolsCount: kind === 'mcp' ? ((doc as McpServer).tools?.length ?? 0) : 0,
   }
 }
 
@@ -76,9 +79,9 @@ export const SORT_OPTIONS = [
 ] as const
 
 export const FILTER_OPTIONS = [
-  { value: 'all', label: '全部产品' },
-  { value: 'featured', label: '只看推荐' },
-  { value: 'free', label: '只看免费' },
+  { value: 'all', label: '全部' },
+  { value: 'featured', label: '推荐' },
+  { value: 'free', label: '免费' },
 ] as const
 
 export type ListingQuery = {
@@ -128,16 +131,38 @@ export async function getListings({
   }
 }
 
+/** 分类及每个分类下已上架的数量 */
 export const getCategories = cache(async (kind: ListingKind) => {
   const payload = await getPayloadClient()
-  const { docs } = await payload.find({
-    collection: 'categories',
-    where: { kind: { equals: kind } },
-    sort: 'sortOrder',
-    limit: 100,
-    depth: 0,
-  })
-  return docs.map((doc) => ({ name: doc.name, slug: doc.slug }))
+  const [{ docs: categories }, { docs: listings }] = await Promise.all([
+    payload.find({
+      collection: 'categories',
+      where: { kind: { equals: kind } },
+      sort: 'sortOrder',
+      limit: 100,
+      depth: 0,
+    }),
+    payload.find({
+      collection: collectionOf(kind),
+      where: { status: { equals: 'published' } },
+      select: { category: true },
+      limit: 1000,
+      depth: 0,
+    }),
+  ])
+  const counts = new Map<number, number>()
+  for (const doc of listings) {
+    const id = typeof doc.category === 'object' ? doc.category?.id : doc.category
+    if (id) counts.set(id, (counts.get(id) ?? 0) + 1)
+  }
+  return {
+    total: listings.length,
+    items: categories.map((doc) => ({
+      name: doc.name,
+      slug: doc.slug,
+      count: counts.get(doc.id) ?? 0,
+    })),
+  }
 })
 
 /** 所有已上架内容里出现过的标签 */

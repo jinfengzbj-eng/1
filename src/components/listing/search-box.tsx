@@ -3,12 +3,11 @@
 
 import { SearchIcon } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useDebounce } from 'use-debounce'
 
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { cn, createUrl } from '@/lib/utils'
+import { createUrl } from '@/lib/utils'
 
 export default function SearchBox({
   urlPrefix,
@@ -23,7 +22,7 @@ export default function SearchBox({
   const [debouncedQuery] = useDebounce(query, 300)
   const lastExecuted = useRef(searchParams.get('q') ?? '')
 
-  // 地址栏的 q 被外部改掉（比如点了“重置”）时，同步到输入框
+  // 地址栏的 q 被外部改掉（比如点了分类）时，同步到输入框
   useEffect(() => {
     const current = searchParams.get('q') ?? ''
     if (current !== lastExecuted.current) {
@@ -32,36 +31,51 @@ export default function SearchBox({
     }
   }, [searchParams])
 
+  const run = useCallback(
+    (value: string) => {
+      if (value === lastExecuted.current) return
+      const params = new URLSearchParams(searchParams.toString())
+      if (value) params.set('q', value)
+      else params.delete('q')
+      params.delete('page')
+      lastExecuted.current = value
+      router.push(createUrl(urlPrefix, params), { scroll: false })
+    },
+    [router, searchParams, urlPrefix],
+  )
+
+  // 只在输入框的防抖值变化时搜索；地址栏被外部改动时 run 也会变，但不能把旧关键词写回去
+  const lastDebounced = useRef(debouncedQuery)
   useEffect(() => {
-    if (debouncedQuery === lastExecuted.current) return
-    const params = new URLSearchParams(searchParams.toString())
-    if (debouncedQuery) params.set('q', debouncedQuery)
-    else params.delete('q')
-    params.delete('page')
-    lastExecuted.current = debouncedQuery
-    router.push(createUrl(urlPrefix, params), { scroll: false })
-  }, [debouncedQuery, router, searchParams, urlPrefix])
+    if (debouncedQuery === lastDebounced.current) return
+    lastDebounced.current = debouncedQuery
+    run(debouncedQuery)
+  }, [debouncedQuery, run])
 
   return (
     <form
       role="search"
-      className="mx-auto flex w-full max-w-2xl items-center justify-center"
-      onSubmit={(event) => event.preventDefault()}
+      className="glass mx-auto flex h-13 w-full max-w-[720px] items-center gap-3 rounded-[18px] pr-1.5 pl-4 md:h-15 md:rounded-[20px] md:pr-2 md:pl-5"
+      onSubmit={(event) => {
+        event.preventDefault()
+        run(query)
+      }}
     >
-      <Input
+      <SearchIcon className="size-5 shrink-0 text-muted-foreground" aria-hidden />
+      <label htmlFor="listing-search" className="sr-only">
+        搜索
+      </label>
+      <input
+        id="listing-search"
         type="search"
         placeholder={placeholder}
         autoComplete="off"
         value={query}
         onChange={(event) => setQuery(event.target.value)}
-        className={cn(
-          'h-12 min-w-0 flex-1 rounded-r-none text-base',
-          'focus:border-2 focus:border-r-0 focus:border-primary focus-visible:ring-0',
-        )}
+        className="h-11 min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground"
       />
-      <Button type="submit" className="size-12 shrink-0 rounded-l-none">
-        <SearchIcon className="size-6" aria-hidden="true" />
-        <span className="sr-only">搜索</span>
+      <Button type="submit" className="h-10 rounded-[14px] px-5 md:h-11 md:px-5.5">
+        搜索
       </Button>
     </form>
   )

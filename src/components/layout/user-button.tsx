@@ -23,15 +23,15 @@ export type NavUser = {
   isAdmin: boolean
 }
 
-export function CreditsPill({ credits }: { credits: number }) {
+export function CreditsPill({ credits, compact }: { credits: number; compact?: boolean }) {
   return (
     <Link
       href="/console"
-      className="flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm font-medium transition-colors hover:bg-accent"
+      className="flex h-10 items-center gap-1.5 rounded-full bg-credit-soft px-3.5 text-sm font-semibold text-credit tabular-nums transition-opacity hover:opacity-85"
     >
-      <CoinsIcon className="size-4 text-amber-500" />
+      <CoinsIcon className="size-4" />
       <span>{credits.toLocaleString('zh-CN')}</span>
-      <span className="text-muted-foreground">积分</span>
+      {!compact && <span>积分</span>}
     </Link>
   )
 }
@@ -43,9 +43,12 @@ export function UserButton({ user }: { user: NavUser }) {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="rounded-full outline-none" aria-label="账户菜单">
-        <Avatar className="size-8 border">
-          <AvatarFallback className="bg-primary/10 text-sm font-medium text-primary">
+      <DropdownMenuTrigger
+        className="rounded-full outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+        aria-label="账户菜单"
+      >
+        <Avatar className="size-10">
+          <AvatarFallback className="bg-brand-soft text-[15px] font-semibold text-brand">
             {Array.from(displayName)[0]?.toUpperCase()}
           </AvatarFallback>
         </Avatar>

@@ -1,20 +1,13 @@
-// 布局改编自 Mkdirs 首页（Apache-2.0）https://github.com/MkThingsHQ/mkdirs
+// 布局参考 Mkdirs 首页（Apache-2.0）https://github.com/MkThingsHQ/mkdirs
 import { Suspense } from 'react'
 
 import Container from '@/components/container'
-import CategoryList from '@/components/listing/category-list'
+import { CategoryChips, CategorySidebar, FilterBar } from '@/components/listing/filter-bar'
 import { listingPaths } from '@/components/listing/listing-card'
 import ListingGrid from '@/components/listing/listing-grid'
-import SearchFilter from '@/components/listing/search-filter'
 import CustomPagination from '@/components/shared/pagination'
-import {
-  FILTER_OPTIONS,
-  getCategories,
-  getListings,
-  getTags,
-  type ListingKind,
-  SORT_OPTIONS,
-} from '@/lib/data'
+import { getCategories, getListings, getTags, type ListingKind } from '@/lib/data'
+import type { ListingParams } from '@/lib/listing-url'
 
 export type ListingSearchParams = Promise<Record<string, string | string[] | undefined>>
 
@@ -29,66 +22,54 @@ export default async function ListingPage({
   searchParams: ListingSearchParams
   hero: React.ReactNode
 }) {
-  const params = await searchParams
-  const urlPrefix = listingPaths[kind].list
-  const page = Math.max(1, Number(pick(params.page)) || 1)
+  const raw = await searchParams
+  const base = listingPaths[kind].list
+  const params: ListingParams = {
+    q: pick(raw.q),
+    category: pick(raw.category),
+    tag: pick(raw.tag),
+    filter: pick(raw.filter),
+    sort: pick(raw.sort),
+  }
+  const page = Math.max(1, Number(pick(raw.page)) || 1)
+  const allLabel = kind === 'mcp' ? '全部 MCP' : '全部工具'
 
   const [{ items, totalPages, totalDocs }, categories, tags] = await Promise.all([
-    getListings({
-      kind,
-      q: pick(params.q),
-      category: pick(params.category),
-      tag: pick(params.tag),
-      sort: pick(params.sort),
-      filter: pick(params.filter),
-      page,
-    }),
+    getListings({ kind, ...params, page }),
     getCategories(kind),
     getTags(kind),
   ])
 
   return (
-    <Container className="mt-12 mb-16 flex flex-col gap-12">
+    <Container className="mt-10 flex flex-col gap-10 md:mt-18 md:gap-18">
       {hero}
 
-      <div className="flex flex-col gap-8 md:flex-row">
-        {/* 左侧分类 */}
-        <aside className="hidden w-[250px] shrink-0 md:block">
-          <div className="sticky top-24">
-            <Suspense>
-              <CategoryList
-                categories={categories}
-                urlPrefix={urlPrefix}
-                allLabel={kind === 'mcp' ? '全部 MCP' : '全部工具'}
-              />
-            </Suspense>
-          </div>
+      <div className="flex flex-col gap-4 md:flex-row md:items-start md:gap-7">
+        <aside className="hidden w-62 shrink-0 md:sticky md:top-28 md:block">
+          <CategorySidebar
+            base={base}
+            params={params}
+            categories={categories.items}
+            total={categories.total}
+            allLabel={allLabel}
+          />
         </aside>
 
-        {/* 右侧筛选 + 卡片 */}
-        <div className="flex-1">
-          <div className="flex flex-col gap-8">
+        <section className="flex min-w-0 flex-1 flex-col gap-4 md:gap-4.5">
+          <CategoryChips
+            base={base}
+            params={params}
+            categories={categories.items}
+            allLabel={allLabel}
+          />
+          <FilterBar base={base} params={params} tags={tags} totalDocs={totalDocs} />
+          <ListingGrid items={items} />
+          <div className="flex justify-center">
             <Suspense>
-              <SearchFilter
-                urlPrefix={urlPrefix}
-                categories={categories}
-                tags={tags}
-                sortOptions={SORT_OPTIONS.map(({ value, label }) => ({ value, label }))}
-                filterOptions={FILTER_OPTIONS.map(({ value, label }) => ({ value, label }))}
-              />
+              <CustomPagination routePrefix={base} totalPages={totalPages} />
             </Suspense>
-
-            <p className="-mt-4 text-sm text-muted-foreground">共 {totalDocs} 个结果</p>
-
-            <ListingGrid items={items} />
-
-            <div className="flex items-center justify-center">
-              <Suspense>
-                <CustomPagination routePrefix={urlPrefix} totalPages={totalPages} />
-              </Suspense>
-            </div>
           </div>
-        </div>
+        </section>
       </div>
     </Container>
   )

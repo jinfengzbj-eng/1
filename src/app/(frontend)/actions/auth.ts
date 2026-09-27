@@ -11,7 +11,6 @@ export type AuthFormState = { error?: string; email?: string }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-
 async function setAuthCookie(token: string, exp?: number) {
   const payload = await getPayloadClient()
   const cookieStore = await cookies()
@@ -38,8 +37,13 @@ async function signIn(email: string, password: string): Promise<string | null> {
   }
 }
 
-export async function loginAction(_prev: AuthFormState, formData: FormData): Promise<AuthFormState> {
-  const email = String(formData.get('email') ?? '').trim().toLowerCase()
+export async function loginAction(
+  _prev: AuthFormState,
+  formData: FormData,
+): Promise<AuthFormState> {
+  const email = String(formData.get('email') ?? '')
+    .trim()
+    .toLowerCase()
   const password = String(formData.get('password') ?? '')
   if (!email || !password) return { error: '请输入邮箱和密码', email }
 
@@ -52,7 +56,9 @@ export async function registerAction(
   _prev: AuthFormState,
   formData: FormData,
 ): Promise<AuthFormState> {
-  const email = String(formData.get('email') ?? '').trim().toLowerCase()
+  const email = String(formData.get('email') ?? '')
+    .trim()
+    .toLowerCase()
   const password = String(formData.get('password') ?? '')
   const confirm = String(formData.get('confirm') ?? '')
   const nickname = String(formData.get('nickname') ?? '').trim()

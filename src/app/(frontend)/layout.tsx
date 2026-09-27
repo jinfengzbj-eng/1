@@ -1,8 +1,9 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 
+import { Backdrop } from '@/components/layout/backdrop'
 import { Footer } from '@/components/layout/footer'
-import { Navbar } from '@/components/layout/navbar'
+import { Navbar, TabBar } from '@/components/layout/navbar'
 import { ThemeProvider } from '@/components/layout/theme-provider'
 import type { NavUser } from '@/components/layout/user-button'
 import { Toaster } from '@/components/ui/sonner'
@@ -36,13 +37,20 @@ export default async function FrontendLayout({ children }: { children: ReactNode
   return (
     <html lang="zh-CN" suppressHydrationWarning>
       <body className="min-h-screen">
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <Backdrop />
           <div className="flex min-h-screen flex-col">
             <Navbar brand={brand} user={navUser} />
             <main className="flex-1">{children}</main>
-            <Footer brand={brand} tagline={settings.tagline} icp={settings.icp} contact={settings.contact} />
+            <Footer siteName={settings.siteName} icp={settings.icp} contact={settings.contact} />
           </div>
-          <Toaster richColors position="top-right" offset={64} />
+          <TabBar />
+          <Toaster richColors position="top-center" offset={88} />
         </ThemeProvider>
       </body>
     </html>

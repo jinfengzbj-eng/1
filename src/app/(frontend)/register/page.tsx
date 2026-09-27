@@ -20,7 +20,9 @@ export default async function RegisterPage({ searchParams }: Props) {
     <div className="flex min-h-[70vh] items-center justify-center px-4 py-12">
       <AuthCard
         title="创建账号"
-        description={bonus > 0 ? `注册即送 ${bonus} 积分，可用于所有 MCP 服务和 AI 工具` : undefined}
+        description={
+          bonus > 0 ? `注册即送 ${bonus} 积分，可用于所有 MCP 服务和 AI 工具` : undefined
+        }
         footerText="已经有账号了？"
         footerLinkText="直接登录"
         footerHref={next ? `/login?next=${encodeURIComponent(next)}` : '/login'}

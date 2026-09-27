@@ -20,15 +20,15 @@ export function AuthCard({
   children: ReactNode
 }) {
   return (
-    <Card className="w-full max-w-[420px] shadow-md">
+    <Card className="w-full max-w-[420px] gap-7 px-2 py-8">
       <CardHeader className="flex flex-col items-center gap-2 text-center">
-        <h1 className="text-2xl font-bold">{title}</h1>
-        {description && <p className="text-sm text-muted-foreground">{description}</p>}
+        <h1 className="text-[28px] font-bold tracking-tight">{title}</h1>
+        {description && <p className="text-sm text-ink-2">{description}</p>}
       </CardHeader>
       <CardContent>{children}</CardContent>
       <CardFooter className="justify-center text-sm text-muted-foreground">
         {footerText}
-        <Link href={footerHref} className="ml-1 font-medium text-primary hover:underline">
+        <Link href={footerHref} className="ml-1 font-medium text-brand hover:underline">
           {footerLinkText}
         </Link>
       </CardFooter>

@@ -1,5 +1,5 @@
-// 布局改编自 Mkdirs 详情页（Apache-2.0）https://github.com/MkThingsHQ/mkdirs
-import { ArrowDownIcon, AwardIcon, WrenchIcon } from 'lucide-react'
+// 信息结构参考 Mkdirs 详情页（Apache-2.0）https://github.com/MkThingsHQ/mkdirs
+import { CheckIcon, CopyIcon, WrenchIcon } from 'lucide-react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -8,25 +8,18 @@ import Container from '@/components/container'
 import { ConfigTabs } from '@/components/detail/config-tabs'
 import {
   DetailBreadcrumb,
+  DetailHeader,
   InfoList,
   Panel,
-  RelatedSection,
+  RelatedList,
   TagList,
 } from '@/components/detail/detail-parts'
-import { PriceCard } from '@/components/detail/price-card'
-import { LetterIcon } from '@/components/letter-icon'
+import { MobileActionBar, PriceCard } from '@/components/detail/price-card'
 import { Markdown } from '@/components/shared/markdown'
 import { Button } from '@/components/ui/button'
-import {
-  getCurrentUser,
-  getMcpBySlug,
-  getRelated,
-  getSiteSettings,
-  mediaUrl,
-  toCard,
-} from '@/lib/data'
+import { getCurrentUser, getMcpBySlug, getRelated, getSiteSettings, toCard } from '@/lib/data'
 import { buildClientConfigs } from '@/lib/mcp-config'
-import { cn, formatDate } from '@/lib/utils'
+import { formatDate } from '@/lib/utils'
 
 type Props = { params: Promise<{ slug: string }> }
 
@@ -47,125 +40,133 @@ export default async function McpDetailPage({ params }: Props) {
     getRelated('mcp', doc),
   ])
   const card = toCard(doc, 'mcp')
+  const tools = doc.tools ?? []
+  const credits = user ? (user.credits ?? 0) : null
   const configs = buildClientConfigs({
     slug: doc.slug,
     endpoint: doc.endpoint,
     transport: doc.transport,
     apiKey: user?.apiKey,
   })
+  const infoRows = [
+    { label: '传输方式', value: doc.transport === 'http' ? 'Streamable HTTP' : 'SSE' },
+    ...(doc.version ? [{ label: '版本', value: doc.version }] : []),
+    { label: '更新时间', value: formatDate(doc.updatedAt) },
+  ]
+  const connect = { label: '立即接入', href: '#connect' }
 
   return (
-    <Container className="mt-8 mb-16 flex flex-col gap-8">
-      {/* 头部 */}
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-5">
-        <div className="flex flex-col gap-8 lg:col-span-3">
-          <DetailBreadcrumb rootLabel="MCP 服务" rootHref="/" category={card.category} name={doc.name} />
+    <Container className="mt-6 flex flex-col gap-6 md:mt-10 md:gap-8">
+      <DetailBreadcrumb
+        rootLabel="MCP 服务"
+        rootHref="/"
+        category={card.category}
+        name={doc.name}
+      />
 
-          <div className="flex flex-col gap-6">
-            <div className="flex w-full items-center gap-4">
-              <LetterIcon name={doc.name} seed={doc.slug} src={mediaUrl(doc.logo)} size={48} />
-              <h1
-                className={cn(
-                  'flex items-center gap-2 text-3xl font-bold tracking-wide sm:text-4xl',
-                  doc.featured && 'text-gradient_indigo-purple',
-                )}
-              >
-                {doc.name}
-              </h1>
-              {doc.featured && <AwardIcon className="size-6 shrink-0 text-indigo-500" />}
-            </div>
-            <p className="leading-relaxed text-balance text-muted-foreground">{doc.summary}</p>
-          </div>
-
-          <div className="flex flex-wrap gap-4">
-            <Button size="lg" asChild className="group">
-              <Link href="#connect">
-                <ArrowDownIcon className="icon-scale" />
-                查看接入配置
-              </Link>
-            </Button>
-            {(doc.tools?.length ?? 0) > 0 && (
-              <Button size="lg" variant="outline" asChild>
-                <Link href="#tools">
-                  <WrenchIcon />
-                  {doc.tools!.length} 个工具
+      <div className="grid grid-cols-1 items-start gap-8 md:grid-cols-[minmax(0,1fr)_392px]">
+        <DetailHeader
+          item={card}
+          chips={[card.category?.name, doc.version ? `v${doc.version}` : null].filter(
+            (chip): chip is string => !!chip,
+          )}
+          actions={
+            <>
+              <Button asChild size="lg" className="h-12 rounded-[14px] text-base">
+                <Link href="#connect">
+                  <CopyIcon />
+                  复制配置，立即接入
                 </Link>
               </Button>
-            )}
-          </div>
-        </div>
-
-        <div className="lg:col-span-2">
+              {tools.length > 0 && (
+                <Button asChild size="lg" variant="glass" className="h-12 rounded-[14px] text-base">
+                  <Link href="#tools">
+                    <WrenchIcon />
+                    {tools.length} 个工具
+                  </Link>
+                </Button>
+              )}
+            </>
+          }
+        />
+        <div className="hidden md:block">
           <PriceCard
             price={doc.creditsPerCall}
             unitLabel="每次调用消耗"
-            credits={user ? (user.credits ?? 0) : null}
+            credits={credits}
             signupBonus={settings.signupBonus ?? 0}
             loginNext={`/mcp/${doc.slug}`}
-            action={{ label: '复制配置，立即接入', href: '#connect' }}
+            action={connect}
+            rows={infoRows}
           />
         </div>
       </div>
 
-      {/* 内容 */}
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-5">
-        <div className="flex flex-col gap-8 lg:col-span-3">
+      <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-[minmax(0,1fr)_392px] md:gap-8">
+        <div className="flex flex-col gap-6">
           <Panel title="介绍">
             <Markdown source={doc.description} />
           </Panel>
 
-          {(doc.tools?.length ?? 0) > 0 && (
+          {tools.length > 0 && (
             <Panel title="提供的工具" id="tools">
-              <ul className="divide-y">
-                {doc.tools!.map((tool) => (
-                  <li key={tool.id ?? tool.name} className="py-3 first:pt-0 last:pb-0">
-                    <code className="rounded bg-background px-1.5 py-0.5 font-mono text-sm font-semibold">
+              <ul className="-my-3 divide-y">
+                {tools.map((tool) => (
+                  <li key={tool.id ?? tool.name} className="flex flex-col gap-2 py-3.5">
+                    <code className="self-start rounded-lg bg-code px-2 py-0.5 font-mono text-sm font-semibold">
                       {tool.name}
                     </code>
-                    {tool.description && (
-                      <p className="mt-1.5 text-sm text-muted-foreground">{tool.description}</p>
-                    )}
+                    {tool.description && <p className="text-sm text-ink-2">{tool.description}</p>}
                   </li>
                 ))}
               </ul>
             </Panel>
           )}
 
-          <Panel title="接入配置" id="connect">
-            {!user && (
-              <p className="mb-4 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300">
-                <Link href={`/login?next=/mcp/${doc.slug}`} className="font-medium underline">
-                  登录
+          <section
+            id="connect"
+            className="surface flex scroll-mt-28 flex-col gap-4 rounded-3xl p-6 md:p-8"
+          >
+            <div className="flex items-center justify-between gap-4">
+              <h2 className="text-xl font-bold tracking-tight">接入配置</h2>
+              {user ? (
+                <span className="flex items-center gap-1.5 text-[13px] text-free">
+                  <CheckIcon className="size-4" />
+                  已自动填入你的密钥
+                </span>
+              ) : (
+                <Link
+                  href={`/login?next=/mcp/${doc.slug}`}
+                  className="text-[13px] text-brand hover:underline"
+                >
+                  登录后自动填入密钥
                 </Link>
-                后，配置里的密钥会自动填好，复制粘贴即可使用。
-              </p>
-            )}
+              )}
+            </div>
             <ConfigTabs configs={configs} />
-          </Panel>
+          </section>
         </div>
 
-        <div className="flex flex-col gap-4 lg:col-span-2">
-          <Panel title="信息">
-            <InfoList
-              rows={[
-                { label: '分类', value: card.category?.name ?? '未分类' },
-                {
-                  label: '计费',
-                  value: doc.creditsPerCall > 0 ? `${doc.creditsPerCall} 积分 / 次调用` : '免费',
-                },
-                { label: '传输方式', value: doc.transport === 'http' ? 'Streamable HTTP' : 'SSE' },
-                ...(doc.version ? [{ label: '版本', value: doc.version }] : []),
-                { label: '更新时间', value: formatDate(doc.updatedAt) },
-              ]}
-            />
+        <div className="flex flex-col gap-6">
+          <Panel title="信息" className="md:hidden">
+            <InfoList rows={infoRows} />
           </Panel>
           <Panel title="标签">
             <TagList tags={card.tags} listHref="/" />
           </Panel>
+          <Panel title="同类服务">
+            <RelatedList items={related} />
+          </Panel>
         </div>
       </div>
 
-      <RelatedSection title="更多 MCP 服务" items={related} />
+      <MobileActionBar
+        price={doc.creditsPerCall}
+        unit="次"
+        credits={credits}
+        loginNext={`/mcp/${doc.slug}`}
+        action={connect}
+      />
     </Container>
   )
 }

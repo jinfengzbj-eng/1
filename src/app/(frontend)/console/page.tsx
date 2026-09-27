@@ -19,21 +19,21 @@ export default async function ConsolePage() {
   const displayName = user.nickname || user.email.split('@')[0]
 
   return (
-    <Container className="mt-10 mb-16 flex flex-col gap-8">
-      <div>
-        <h1 className="text-3xl font-bold">用户中心</h1>
-        <p className="mt-2 text-muted-foreground">你好，{displayName}</p>
+    <Container className="mt-8 flex flex-col gap-6 md:mt-12 md:gap-8">
+      <div className="flex flex-col gap-2">
+        <h1 className="text-3xl font-bold tracking-tight md:text-[42px]">用户中心</h1>
+        <p className="text-ink-2">你好，{displayName}</p>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* 积分余额 */}
-        <Card className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30">
+        <Card>
           <CardHeader>
             <CardDescription className="flex items-center gap-2">
-              <CoinsIcon className="size-4 text-amber-500" />
+              <CoinsIcon className="size-4 text-credit" />
               积分余额
             </CardDescription>
-            <CardTitle className="text-5xl font-bold">
+            <CardTitle className="text-[52px] leading-none font-bold tracking-[-0.03em] tabular-nums">
               {(user.credits ?? 0).toLocaleString('zh-CN')}
             </CardTitle>
           </CardHeader>
@@ -53,10 +53,10 @@ export default async function ConsolePage() {
         </Card>
 
         {/* 接入密钥 */}
-        <Card id="api-key" className="scroll-mt-24 lg:col-span-2">
+        <Card id="api-key" className="scroll-mt-28 lg:col-span-2">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
-              <KeyRoundIcon className="size-5 text-primary" />
+              <KeyRoundIcon className="size-5 text-brand" />
               接入密钥
             </CardTitle>
             <CardDescription>在 AI 客户端里接入 MCP 服务时使用</CardDescription>
@@ -73,16 +73,16 @@ export default async function ConsolePage() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* 兑换卡密（下一步接入真实兑换逻辑） */}
-        <Card id="redeem" className="scroll-mt-24">
+        <Card id="redeem" className="scroll-mt-28">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
-              <TicketIcon className="size-5 text-primary" />
+              <TicketIcon className="size-5 text-brand" />
               兑换卡密
             </CardTitle>
             {settings.redeemNote && <CardDescription>{settings.redeemNote}</CardDescription>}
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
-            <Input placeholder="XXXX-XXXX-XXXX-XXXX" className="h-10 font-mono" disabled />
+            <Input placeholder="XXXX-XXXX-XXXX-XXXX" className="h-11 font-mono" disabled />
             <Button disabled>兑换功能即将开放</Button>
           </CardContent>
         </Card>
@@ -91,13 +91,13 @@ export default async function ConsolePage() {
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
-              <HistoryIcon className="size-5 text-primary" />
+              <HistoryIcon className="size-5 text-brand" />
               积分记录
             </CardTitle>
             <CardDescription>兑换、消费记录会显示在这里</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex h-32 items-center justify-center rounded-lg border border-dashed text-sm text-muted-foreground">
+            <div className="flex h-32 items-center justify-center rounded-2xl border border-dashed text-sm text-muted-foreground">
               暂无记录
             </div>
           </CardContent>

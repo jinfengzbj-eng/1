@@ -33,7 +33,7 @@ export function ApiKeyCard({ initialKey }: { initialKey: string }) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-2">
-        <code className="flex-1 truncate rounded-md border bg-background px-3 py-2 font-mono text-sm">
+        <code className="flex-1 truncate rounded-xl border bg-code px-3.5 py-2.5 font-mono text-sm">
           {visible ? apiKey : mask(apiKey)}
         </code>
         <Button

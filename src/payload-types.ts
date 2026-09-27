@@ -72,6 +72,9 @@ export interface Config {
     categories: Category;
     media: Media;
     users: User;
+    'credit-transactions': CreditTransaction;
+    'redeem-batches': RedeemBatch;
+    'redeem-codes': RedeemCode;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -84,6 +87,9 @@ export interface Config {
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
+    'credit-transactions': CreditTransactionsSelect<false> | CreditTransactionsSelect<true>;
+    'redeem-batches': RedeemBatchesSelect<false> | RedeemBatchesSelect<true>;
+    'redeem-codes': RedeemCodesSelect<false> | RedeemCodesSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -276,6 +282,9 @@ export interface User {
   id: number;
   nickname?: string | null;
   role: 'admin' | 'user';
+  /**
+   * 要加减积分，请到“积分流水”新建一条调整记录
+   */
   credits: number;
   /**
    * 用户在 MCP 客户端和 AI 工具中使用的密钥
@@ -300,6 +309,84 @@ export interface User {
     | null;
   password?: string | null;
   collection: 'users';
+}
+/**
+ * 想给用户加减积分，点标题旁的“创建新条目”，填用户和数量即可（负数为扣减）。
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "credit-transactions".
+ */
+export interface CreditTransaction {
+  id: number;
+  user: number | User;
+  /**
+   * 正数为增加，负数为扣减
+   */
+  amount: number;
+  /**
+   * 用户在积分记录里能看到，比如“客服补偿”
+   */
+  note?: string | null;
+  type?: ('signup' | 'redeem' | 'consume' | 'refund' | 'admin') | null;
+  balanceAfter?: number | null;
+  /**
+   * 消费时记录，如 mcp/pdf-parser
+   */
+  product?: string | null;
+  redeemCode?: (number | null) | RedeemCode;
+  operator?: (number | null) | User;
+  key?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "redeem-codes".
+ */
+export interface RedeemCode {
+  id: number;
+  code: string;
+  batch: number | RedeemBatch;
+  credits: number;
+  status: 'unused' | 'used' | 'disabled';
+  usedBy?: (number | null) | User;
+  usedAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * 新建批次会按数量生成卡密，保存后在批次详情里导出 txt，上传到发卡平台销售。
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "redeem-batches".
+ */
+export interface RedeemBatch {
+  id: number;
+  /**
+   * 自己看的，比如“淘宝 100 积分 第 1 批”
+   */
+  name: string;
+  /**
+   * 每张卡密能兑换的积分，生成后不能改
+   */
+  credits: number;
+  /**
+   * 一次最多 5000 张，生成后不能改
+   */
+  quantity: number;
+  /**
+   * 不填则永久有效；过期后未兑换的卡密不能再兑换
+   */
+  expiresAt?: string | null;
+  /**
+   * 卡密泄露或下架时勾选，本批未兑换的卡密全部不能再兑换
+   */
+  disabled?: boolean | null;
+  note?: string | null;
+  usedCount?: number | null;
+  unusedCount?: number | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -344,6 +431,18 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'users';
         value: number | User;
+      } | null)
+    | ({
+        relationTo: 'credit-transactions';
+        value: number | CreditTransaction;
+      } | null)
+    | ({
+        relationTo: 'redeem-batches';
+        value: number | RedeemBatch;
+      } | null)
+    | ({
+        relationTo: 'redeem-codes';
+        value: number | RedeemCode;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -493,6 +592,53 @@ export interface UsersSelect<T extends boolean = true> {
         createdAt?: T;
         expiresAt?: T;
       };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "credit-transactions_select".
+ */
+export interface CreditTransactionsSelect<T extends boolean = true> {
+  user?: T;
+  amount?: T;
+  note?: T;
+  type?: T;
+  balanceAfter?: T;
+  product?: T;
+  redeemCode?: T;
+  operator?: T;
+  key?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "redeem-batches_select".
+ */
+export interface RedeemBatchesSelect<T extends boolean = true> {
+  name?: T;
+  credits?: T;
+  quantity?: T;
+  expiresAt?: T;
+  disabled?: T;
+  note?: T;
+  usedCount?: T;
+  unusedCount?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "redeem-codes_select".
+ */
+export interface RedeemCodesSelect<T extends boolean = true> {
+  code?: T;
+  batch?: T;
+  credits?: T;
+  status?: T;
+  usedBy?: T;
+  usedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

@@ -232,3 +232,33 @@ export async function getRelated(kind: ListingKind, doc: McpServer | AiTool, cou
   }
   return docs.map((d) => toCard(d, kind))
 }
+
+export const CREDIT_HISTORY_PER_PAGE = 20
+
+/** 用户自己的积分流水，最新的在前 */
+export async function getCreditHistory(userId: number, page = 1, limit = CREDIT_HISTORY_PER_PAGE) {
+  const payload = await getPayloadClient()
+  const result = await payload.find({
+    collection: 'credit-transactions',
+    where: { user: { equals: userId } },
+    sort: '-createdAt',
+    page,
+    limit,
+    depth: 0,
+    overrideAccess: true,
+  })
+  return {
+    items: result.docs.map((doc) => ({
+      id: doc.id,
+      type: doc.type,
+      amount: doc.amount,
+      balanceAfter: doc.balanceAfter ?? null,
+      note: doc.note ?? null,
+      createdAt: doc.createdAt,
+    })),
+    totalDocs: result.totalDocs,
+    totalPages: result.totalPages,
+  }
+}
+
+export type CreditHistoryItem = Awaited<ReturnType<typeof getCreditHistory>>['items'][number]

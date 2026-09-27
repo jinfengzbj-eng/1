@@ -3,6 +3,7 @@
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 
+import { grantSignupBonus } from '@/lib/credits'
 import { getCurrentUser, getPayloadClient, getSiteSettings } from '@/lib/data'
 import { generateApiKey } from '@/lib/random'
 import { safeNext } from '@/lib/safe-next'
@@ -77,19 +78,21 @@ export async function registerAction(
 
   const settings = await getSiteSettings()
   // 注册只开放这几个字段，角色固定为普通用户
-  await payload.create({
+  const user = await payload.create({
     collection: 'users',
     data: {
       email,
       password,
       nickname: nickname || undefined,
       role: 'user',
-      credits: settings.signupBonus ?? 0,
+      credits: 0,
       apiKey: generateApiKey(),
     },
     overrideAccess: true,
     context: { publicSignup: true },
   })
+  // 赠送积分走积分流水，用户在积分记录里能看到
+  await grantSignupBonus(payload, user.id, settings.signupBonus ?? 0)
 
   const error = await signIn(email, password)
   if (error) return { error, email }

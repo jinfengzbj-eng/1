@@ -61,8 +61,13 @@ export const Users: CollectionConfig = {
       required: true,
       defaultValue: 0,
       min: 0,
-      access: { create: isAdminField, update: isAdminField },
-      admin: { position: 'sidebar' },
+      // 余额只能通过积分流水变动（见 lib/credits.ts），后台和接口都不能直接改
+      access: { create: () => false, update: () => false },
+      admin: {
+        position: 'sidebar',
+        readOnly: true,
+        description: '要加减积分，请到“积分流水”新建一条调整记录',
+      },
     },
     {
       name: 'apiKey',

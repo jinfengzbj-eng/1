@@ -4,18 +4,24 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 
 import { ApiKeyCard } from '@/components/console/api-key-card'
+import { CreditHistory } from '@/components/console/credit-history'
+import { RedeemForm } from '@/components/console/redeem-form'
 import Container from '@/components/container'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { getCurrentUser, getSiteSettings } from '@/lib/data'
+import { getCreditHistory, getCurrentUser, getSiteSettings } from '@/lib/data'
 
 export const metadata: Metadata = { title: '用户中心' }
+
+const RECENT_COUNT = 8
 
 export default async function ConsolePage() {
   const user = await getCurrentUser()
   if (!user) redirect('/login?next=/console')
-  const settings = await getSiteSettings()
+  const [settings, history] = await Promise.all([
+    getSiteSettings(),
+    getCreditHistory(user.id, 1, RECENT_COUNT),
+  ])
   const displayName = user.nickname || user.email.split('@')[0]
 
   return (
@@ -72,34 +78,51 @@ export default async function ConsolePage() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* 兑换卡密（下一步接入真实兑换逻辑） */}
+        {/* 兑换卡密 */}
         <Card id="redeem" className="scroll-mt-28">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
               <TicketIcon className="size-5 text-brand" />
               兑换卡密
             </CardTitle>
-            {settings.redeemNote && <CardDescription>{settings.redeemNote}</CardDescription>}
+            <CardDescription>
+              {settings.redeemNote || '输入卡密，积分立即到账，可用于所有 MCP 服务和 AI 工具。'}
+            </CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-col gap-3">
-            <Input placeholder="XXXX-XXXX-XXXX-XXXX" className="h-11 font-mono" disabled />
-            <Button disabled>兑换功能即将开放</Button>
+          <CardContent className="flex flex-col gap-4">
+            <RedeemForm />
+            {settings.buyCodesUrl && (
+              <Link
+                href={settings.buyCodesUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center justify-center gap-1 text-sm text-brand hover:underline"
+              >
+                还没有卡密？去购买
+                <ExternalLinkIcon className="size-3.5" />
+              </Link>
+            )}
           </CardContent>
         </Card>
 
         {/* 积分记录 */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <HistoryIcon className="size-5 text-brand" />
-              积分记录
-            </CardTitle>
-            <CardDescription>兑换、消费记录会显示在这里</CardDescription>
+        <Card id="history" className="scroll-mt-28 lg:col-span-2">
+          <CardHeader className="flex flex-row items-start justify-between gap-4">
+            <div className="flex flex-col gap-1.5">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <HistoryIcon className="size-5 text-brand" />
+                积分记录
+              </CardTitle>
+              <CardDescription>兑换、消费、退款都会记在这里</CardDescription>
+            </div>
+            {history.totalDocs > RECENT_COUNT && (
+              <Link href="/console/credits" className="shrink-0 text-sm text-brand hover:underline">
+                全部 {history.totalDocs} 条
+              </Link>
+            )}
           </CardHeader>
           <CardContent>
-            <div className="flex h-32 items-center justify-center rounded-2xl border border-dashed text-sm text-muted-foreground">
-              暂无记录
-            </div>
+            <CreditHistory items={history.items} />
           </CardContent>
         </Card>
       </div>

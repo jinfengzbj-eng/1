@@ -8,9 +8,13 @@ import sharp from 'sharp'
 
 import { AiTools } from './collections/AiTools'
 import { Categories } from './collections/Categories'
+import { CreditTransactions } from './collections/CreditTransactions'
 import { McpServers } from './collections/McpServers'
 import { Media } from './collections/Media'
+import { RedeemBatches } from './collections/RedeemBatches'
+import { RedeemCodes } from './collections/RedeemCodes'
 import { Users } from './collections/Users'
+import { creditEndpoints } from './endpoints/credits'
 import { SiteSettings } from './globals/SiteSettings'
 
 const filename = fileURLToPath(import.meta.url)
@@ -32,7 +36,18 @@ export default buildConfig({
     supportedLanguages: { zh },
     fallbackLanguage: 'zh',
   },
-  collections: [McpServers, AiTools, Categories, Media, Users],
+  collections: [
+    McpServers,
+    AiTools,
+    Categories,
+    Media,
+    Users,
+    CreditTransactions,
+    RedeemBatches,
+    RedeemCodes,
+  ],
+  // 给 MCP 网关和 AI 工具调用的内部接口：/api/credits/*
+  endpoints: creditEndpoints,
   globals: [SiteSettings],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',

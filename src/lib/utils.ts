@@ -20,6 +20,25 @@ export function formatShortDate(input: string | number | Date, now: Date = new D
     : `${date.getFullYear()}年${date.getMonth() + 1}月`
 }
 
+// 面向国内用户，时间统一按北京时间显示，不受服务器时区影响
+const dateTimeFormat = new Intl.DateTimeFormat('zh-CN', {
+  timeZone: 'Asia/Shanghai',
+  year: 'numeric',
+  month: 'numeric',
+  day: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+  hourCycle: 'h23',
+})
+
+/** 日期时间，形如 2026年9月27日 14:05（北京时间） */
+export function formatDateTime(input: string | number | Date): string {
+  const parts = Object.fromEntries(
+    dateTimeFormat.formatToParts(new Date(input)).map((part) => [part.type, part.value]),
+  )
+  return `${parts.year}年${parts.month}月${parts.day}日 ${parts.hour}:${parts.minute}`
+}
+
 /** 拼接带查询参数的网址 */
 export function createUrl(pathname: string, params: URLSearchParams | ReadonlyURLSearchParams) {
   const paramsString = params.toString()

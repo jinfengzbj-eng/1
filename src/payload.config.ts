@@ -1,12 +1,17 @@
 import { sqliteAdapter } from '@payloadcms/db-sqlite'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
+import { zh } from '@payloadcms/translations/languages/zh'
 import path from 'path'
 import { buildConfig } from 'payload'
 import { fileURLToPath } from 'url'
 import sharp from 'sharp'
 
-import { Users } from './collections/Users'
+import { AiTools } from './collections/AiTools'
+import { Categories } from './collections/Categories'
+import { McpServers } from './collections/McpServers'
 import { Media } from './collections/Media'
+import { Users } from './collections/Users'
+import { SiteSettings } from './globals/SiteSettings'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -14,11 +19,21 @@ const dirname = path.dirname(filename)
 export default buildConfig({
   admin: {
     user: Users.slug,
+    // 默认头像走 Gravatar，国内打不开，改用内置头像
+    avatar: 'default',
     importMap: {
       baseDir: path.resolve(dirname),
     },
+    meta: {
+      titleSuffix: ' - 管理后台',
+    },
   },
-  collections: [Users, Media],
+  i18n: {
+    supportedLanguages: { zh },
+    fallbackLanguage: 'zh',
+  },
+  collections: [McpServers, AiTools, Categories, Media, Users],
+  globals: [SiteSettings],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {
@@ -28,6 +43,7 @@ export default buildConfig({
     client: {
       url: process.env.DATABASE_URL || '',
     },
+    busyTimeout: 5000,
   }),
   sharp,
   plugins: [],

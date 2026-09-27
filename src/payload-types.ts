@@ -67,8 +67,11 @@ export interface Config {
   };
   blocks: {};
   collections: {
-    users: User;
+    'mcp-servers': McpServer;
+    'ai-tools': AiTool;
+    categories: Category;
     media: Media;
+    users: User;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -76,19 +79,26 @@ export interface Config {
   };
   collectionsJoins: {};
   collectionsSelect: {
-    users: UsersSelect<false> | UsersSelect<true>;
+    'mcp-servers': McpServersSelect<false> | McpServersSelect<true>;
+    'ai-tools': AiToolsSelect<false> | AiToolsSelect<true>;
+    categories: CategoriesSelect<false> | CategoriesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    users: UsersSelect<false> | UsersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
   };
   db: {
-    defaultIDType: string;
+    defaultIDType: number;
   };
   fallbackLocale: null;
-  globals: {};
-  globalsSelect: {};
+  globals: {
+    'site-settings': SiteSetting;
+  };
+  globalsSelect: {
+    'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
+  };
   locale: null;
   widgets: {
     collections: CollectionsWidget;
@@ -119,36 +129,68 @@ export interface UserAuthOperations {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "users".
+ * via the `definition` "mcp-servers".
  */
-export interface User {
-  id: string;
-  updatedAt: string;
-  createdAt: string;
-  email: string;
-  resetPasswordToken?: string | null;
-  resetPasswordExpiration?: string | null;
-  salt?: string | null;
-  hash?: string | null;
-  loginAttempts?: number | null;
-  lockUntil?: string | null;
-  sessions?:
+export interface McpServer {
+  id: number;
+  name: string;
+  /**
+   * 显示在卡片上，建议 50 字以内
+   */
+  summary: string;
+  /**
+   * 不上传则自动用名称首字生成图标
+   */
+  logo?: (number | null) | Media;
+  category?: (number | null) | Category;
+  tags?: string[] | null;
+  /**
+   * 支持 Markdown，可以直接粘贴 README
+   */
+  description?: string | null;
+  /**
+   * 展示在详情页，让用户知道接入后能做什么
+   */
+  tools?:
     | {
-        id: string;
-        createdAt?: string | null;
-        expiresAt: string;
+        name: string;
+        description?: string | null;
+        id?: string | null;
       }[]
     | null;
-  password?: string | null;
-  collection: 'users';
+  /**
+   * 用户客户端连接的地址，例如 https://mcp.example.com/weather/mcp
+   */
+  endpoint: string;
+  transport: 'http' | 'sse';
+  /**
+   * 填 0 表示免费
+   */
+  creditsPerCall: number;
+  version?: string | null;
+  /**
+   * 用于网址和客户端配置，只能用小写字母、数字和横线，例如 weather
+   */
+  slug: string;
+  status: 'published' | 'hidden';
+  /**
+   * 推荐的会排在前面并带标记
+   */
+  featured?: boolean | null;
+  /**
+   * 数字越小越靠前
+   */
+  sortOrder?: number | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media".
  */
 export interface Media {
-  id: string;
-  alt: string;
+  id: number;
+  alt?: string | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -163,10 +205,108 @@ export interface Media {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories".
+ */
+export interface Category {
+  id: number;
+  name: string;
+  /**
+   * 用于网址筛选，例如 productivity
+   */
+  slug: string;
+  kind: 'mcp' | 'tool';
+  /**
+   * 数字越小越靠前
+   */
+  sortOrder?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ai-tools".
+ */
+export interface AiTool {
+  id: number;
+  name: string;
+  /**
+   * 显示在卡片上，建议 50 字以内
+   */
+  summary: string;
+  /**
+   * 不上传则自动用名称首字生成图标
+   */
+  logo?: (number | null) | Media;
+  category?: (number | null) | Category;
+  tags?: string[] | null;
+  /**
+   * 支持 Markdown，可以直接粘贴 README
+   */
+  description?: string | null;
+  /**
+   * 点击“开始使用”后打开的网址，例如 https://music.example.com
+   */
+  url: string;
+  /**
+   * 填 0 表示免费
+   */
+  creditsPerUse: number;
+  badge?: ('new' | 'hot' | 'beta') | null;
+  /**
+   * 用于网址和客户端配置，只能用小写字母、数字和横线，例如 weather
+   */
+  slug: string;
+  status: 'published' | 'hidden';
+  /**
+   * 推荐的会排在前面并带标记
+   */
+  featured?: boolean | null;
+  /**
+   * 数字越小越靠前
+   */
+  sortOrder?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "users".
+ */
+export interface User {
+  id: number;
+  nickname?: string | null;
+  role: 'admin' | 'user';
+  credits: number;
+  /**
+   * 用户在 MCP 客户端和 AI 工具中使用的密钥
+   */
+  apiKey?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  email: string;
+  resetPasswordToken?: string | null;
+  resetPasswordExpiration?: string | null;
+  salt?: string | null;
+  hash?: string | null;
+  resetPasswordRequestedAt?: string | null;
+  loginAttempts?: number | null;
+  lockUntil?: string | null;
+  sessions?:
+    | {
+        id: string;
+        createdAt?: string | null;
+        expiresAt: string;
+      }[]
+    | null;
+  password?: string | null;
+  collection: 'users';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
-  id: string;
+  id: number;
   key: string;
   data:
     | {
@@ -183,20 +323,32 @@ export interface PayloadKv {
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
-  id: string;
+  id: number;
   document?:
     | ({
-        relationTo: 'users';
-        value: string | User;
+        relationTo: 'mcp-servers';
+        value: number | McpServer;
+      } | null)
+    | ({
+        relationTo: 'ai-tools';
+        value: number | AiTool;
+      } | null)
+    | ({
+        relationTo: 'categories';
+        value: number | Category;
       } | null)
     | ({
         relationTo: 'media';
-        value: string | Media;
+        value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'users';
+        value: number | User;
       } | null);
   globalSlug?: string | null;
   user: {
     relationTo: 'users';
-    value: string | User;
+    value: number | User;
   };
   updatedAt: string;
   createdAt: string;
@@ -206,10 +358,10 @@ export interface PayloadLockedDocument {
  * via the `definition` "payload-preferences".
  */
 export interface PayloadPreference {
-  id: string;
+  id: number;
   user: {
     relationTo: 'users';
-    value: string | User;
+    value: number | User;
   };
   key?: string | null;
   value?:
@@ -229,7 +381,7 @@ export interface PayloadPreference {
  * via the `definition` "payload-migrations".
  */
 export interface PayloadMigration {
-  id: string;
+  id: number;
   name?: string | null;
   batch?: number | null;
   updatedAt: string;
@@ -237,25 +389,65 @@ export interface PayloadMigration {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "users_select".
+ * via the `definition` "mcp-servers_select".
  */
-export interface UsersSelect<T extends boolean = true> {
-  updatedAt?: T;
-  createdAt?: T;
-  email?: T;
-  resetPasswordToken?: T;
-  resetPasswordExpiration?: T;
-  salt?: T;
-  hash?: T;
-  loginAttempts?: T;
-  lockUntil?: T;
-  sessions?:
+export interface McpServersSelect<T extends boolean = true> {
+  name?: T;
+  summary?: T;
+  logo?: T;
+  category?: T;
+  tags?: T;
+  description?: T;
+  tools?:
     | T
     | {
+        name?: T;
+        description?: T;
         id?: T;
-        createdAt?: T;
-        expiresAt?: T;
       };
+  endpoint?: T;
+  transport?: T;
+  creditsPerCall?: T;
+  version?: T;
+  slug?: T;
+  status?: T;
+  featured?: T;
+  sortOrder?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ai-tools_select".
+ */
+export interface AiToolsSelect<T extends boolean = true> {
+  name?: T;
+  summary?: T;
+  logo?: T;
+  category?: T;
+  tags?: T;
+  description?: T;
+  url?: T;
+  creditsPerUse?: T;
+  badge?: T;
+  slug?: T;
+  status?: T;
+  featured?: T;
+  sortOrder?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories_select".
+ */
+export interface CategoriesSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  kind?: T;
+  sortOrder?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -274,6 +466,33 @@ export interface MediaSelect<T extends boolean = true> {
   height?: T;
   focalX?: T;
   focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "users_select".
+ */
+export interface UsersSelect<T extends boolean = true> {
+  nickname?: T;
+  role?: T;
+  credits?: T;
+  apiKey?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  email?: T;
+  resetPasswordToken?: T;
+  resetPasswordExpiration?: T;
+  salt?: T;
+  hash?: T;
+  resetPasswordRequestedAt?: T;
+  loginAttempts?: T;
+  lockUntil?: T;
+  sessions?:
+    | T
+    | {
+        id?: T;
+        createdAt?: T;
+        expiresAt?: T;
+      };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -314,6 +533,66 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   batch?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-settings".
+ */
+export interface SiteSetting {
+  id: number;
+  siteName: string;
+  /**
+   * 显示在页脚和搜索引擎结果里
+   */
+  tagline?: string | null;
+  logo?: (number | null) | Media;
+  /**
+   * 国内网站需在页脚展示，例如 京ICP备12345678号
+   */
+  icp?: string | null;
+  /**
+   * 例如客服微信号或邮箱
+   */
+  contact?: string | null;
+  mcpHeroLabel?: string | null;
+  mcpHeroTitle?: string | null;
+  mcpHeroHighlight?: string | null;
+  mcpHeroSubtitle?: string | null;
+  toolsHeroTitle?: string | null;
+  toolsHeroHighlight?: string | null;
+  toolsHeroSubtitle?: string | null;
+  signupBonus?: number | null;
+  /**
+   * 你的发卡平台或店铺链接，用户中心会显示“购买卡密”按钮
+   */
+  buyCodesUrl?: string | null;
+  redeemNote?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-settings_select".
+ */
+export interface SiteSettingsSelect<T extends boolean = true> {
+  siteName?: T;
+  tagline?: T;
+  logo?: T;
+  icp?: T;
+  contact?: T;
+  mcpHeroLabel?: T;
+  mcpHeroTitle?: T;
+  mcpHeroHighlight?: T;
+  mcpHeroSubtitle?: T;
+  toolsHeroTitle?: T;
+  toolsHeroHighlight?: T;
+  toolsHeroSubtitle?: T;
+  signupBonus?: T;
+  buyCodesUrl?: T;
+  redeemNote?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

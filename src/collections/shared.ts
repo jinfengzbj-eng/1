@@ -87,3 +87,19 @@ export const publishingFields: Field[] = [
     admin: { position: 'sidebar', description: '数字越小越靠前' },
   },
 ]
+
+/** 只允许 http/https 地址，防止写入 javascript: 之类的链接 */
+export const validateHttpUrl = (value: unknown) => {
+  if (typeof value !== 'string' || !value) return '请填写地址'
+  try {
+    const url = new URL(value)
+    return url.protocol === 'https:' || url.protocol === 'http:'
+      ? true
+      : '只能填写 http 或 https 地址'
+  } catch {
+    return '地址格式不正确'
+  }
+}
+
+export const validateOptionalHttpUrl = (value: unknown) =>
+  value === null || value === undefined || value === '' ? true : validateHttpUrl(value)

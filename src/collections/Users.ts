@@ -62,10 +62,7 @@ export const Users: CollectionConfig = {
       defaultValue: 0,
       min: 0,
       access: { create: isAdminField, update: isAdminField },
-      admin: {
-        position: 'sidebar',
-        description: '手动修改会自动记一笔“管理员调整”流水',
-      },
+      admin: { position: 'sidebar' },
     },
     {
       name: 'apiKey',
@@ -83,32 +80,14 @@ export const Users: CollectionConfig = {
   ],
   hooks: {
     beforeChange: [
-      async ({ data, operation, req }) => {
+      async ({ data, operation, req, context }) => {
         if (operation !== 'create') return data
         if (!data.apiKey) data.apiKey = generateApiKey()
-        // 系统里的第一个用户自动成为管理员（后台“创建首个用户”时用到）
+        // 后台“创建首个用户”时，第一个用户自动成为管理员；前台注册永远是普通用户
+        if (context.publicSignup) return data
         const { totalDocs } = await req.payload.count({ collection: 'users', req })
         if (totalDocs === 0) data.role = 'admin'
         return data
-      },
-    ],
-    afterChange: [
-      async ({ doc, previousDoc, operation, req, context }) => {
-        if (operation !== 'update' || context.skipLedger) return doc
-        const diff = (doc.credits ?? 0) - (previousDoc?.credits ?? 0)
-        if (diff === 0) return doc
-        await req.payload.create({
-          collection: 'credit-transactions',
-          data: {
-            user: doc.id,
-            amount: diff,
-            balanceAfter: doc.credits,
-            type: 'admin',
-            description: `管理员调整（${req.user?.email ?? '系统'}）`,
-          },
-          req,
-        })
-        return doc
       },
     ],
   },

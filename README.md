@@ -1,67 +1,88 @@
-# Payload Blank Template
+# MCP 集市
 
-This template comes configured with the bare minimum to get started on anything you need.
+一个展示和售卖自家 MCP 服务、在线 AI 工具的门户站，风格参考 mcp.so。
 
-## Quick start
+- **首页**：MCP 服务卡片墙，支持分类、标签、搜索、筛选、排序
+- **MCP 详情页**：介绍、工具列表、价格，以及 Cursor / Claude Code / VS Code / Claude Desktop / Cherry Studio 等客户端的接入配置（登录后自动填入用户密钥，一键复制）
+- **AI 工具页**：AI 音乐、绘画、配音等在线工具的卡片墙和详情页
+- **用户中心**：积分余额、接入密钥、卡密兑换、积分记录
+- **管理后台** `/admin`：上架产品、管理分类和用户、修改站点设置，全中文界面
 
-This template can be deployed directly from our Cloud hosting and it will setup MongoDB and cloud S3 object storage for media.
+| 首页 | MCP 详情页 |
+|---|---|
+| ![首页](docs/screenshots/01-home.png) | ![详情页](docs/screenshots/08-mcp-detail-logged-in.png) |
 
-## Quick Start - local setup
+更多截图见 [docs/screenshots](docs/screenshots)。
 
-To spin up this template locally, follow these steps:
+## 技术栈
 
-### Clone
+- [Payload CMS 3](https://payloadcms.com)：管理后台、账号登录、数据存储（MIT）
+- [Next.js 16](https://nextjs.org) + React 19：前台页面，和后台在同一个项目里
+- Tailwind CSS v4 + [shadcn/ui](https://ui.shadcn.com)
+- 前台界面改编自 [Mkdirs](https://github.com/MkThingsHQ/mkdirs)（Apache 2.0），详见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
+- 数据库默认 SQLite，不用额外装数据库
 
-After you click the `Deploy` button above, you'll want to have standalone copy of this repo on your machine. If you've already cloned this repo, skip to [Development](#development).
+## 本地运行
 
-### Development
+需要 Node.js 20 以上和 pnpm。
 
-1. First [clone the repo](#clone) if you have not done so already
-2. `cd my-project && cp .env.example .env` to copy the example environment variables. You'll need to add the `MONGODB_URL` from your Cloud project to your `.env` if you want to use S3 storage and the MongoDB database that was created for you.
+```bash
+cp .env.example .env      # 然后把 PAYLOAD_SECRET 改成随机字符
+pnpm install
+pnpm seed                 # 写入示例数据和默认账号
+pnpm dev
+```
 
-3. `pnpm install && pnpm dev` to install dependencies and start the dev server
-4. open `http://localhost:3000` to open the app in your browser
+打开：
 
-That's it! Changes made in `./src` will be reflected in your app. Follow the on-screen instructions to login and create your first admin user. Then check out [Production](#production) once you're ready to build and serve your app, and [Deployment](#deployment) when you're ready to go live.
+- 前台：http://localhost:3000
+- 后台：http://localhost:3000/admin
 
-#### Docker (Optional)
+`pnpm seed` 创建的账号（上线前务必修改密码）：
 
-If you prefer to use Docker for local development instead of a local MongoDB instance, the provided docker-compose.yml file can be used.
+| 账号 | 密码 | 用途 |
+|---|---|---|
+| admin@example.com | admin123456 | 管理员，可登录后台 |
+| demo@example.com | demo123456 | 演示用户，带 120 积分 |
 
-To do so, follow these steps:
+没有运行 `pnpm seed` 的话，第一次打开 `/admin` 会让你创建账号，第一个账号自动成为管理员。前台注册的用户永远是普通用户。
 
-- Modify the `MONGODB_URL` in your `.env` file to `mongodb://127.0.0.1/<dbname>`
-- Modify the `docker-compose.yml` file's `MONGODB_URL` to match the above `<dbname>`
-- Run `docker-compose up` to start the database, optionally pass `-d` to run in the background.
+## 日常操作
 
-## How it works
+- **上架 MCP 服务**：后台 → 产品 → MCP 服务 → 新建。填名称、一句话介绍、详细介绍（支持 Markdown，可直接粘贴 README）、提供的工具、远程 MCP 地址和每次调用消耗的积分。英文短名会用在网址和客户端配置里。
+- **上架 AI 工具**：后台 → 产品 → AI 工具 → 新建，填工具地址和每次使用消耗的积分。
+- **下架**：把状态改成“已下架”，前台立即看不到。
+- **排序和推荐**：勾选“推荐”会排在前面并带标记；“排序”数字越小越靠前。
+- **首页文案、注册赠送积分、购买卡密链接、ICP 备案号**：后台 → 设置 → 站点设置。
 
-The Payload config is tailored specifically to the needs of most websites. It is pre-configured in the following ways:
+## 常用命令
 
-### Collections
+| 命令 | 作用 |
+|---|---|
+| `pnpm dev` | 本地开发 |
+| `pnpm build` / `pnpm start` | 生产构建 / 启动 |
+| `pnpm seed` | 写入示例数据（已有数据会跳过） |
+| `pnpm lint` / `pnpm typecheck` | 代码检查 / 类型检查 |
+| `pnpm test:int` | 运行测试 |
+| `pnpm generate:types` | 修改数据模型后重新生成类型 |
 
-See the [Collections](https://payloadcms.com/docs/configuration/collections) docs for details on how to extend this functionality.
+## 目录结构
 
-- #### Users (Authentication)
+```
+src/
+├── app/(frontend)/     前台页面：首页、/mcp/[slug]、/tools、登录注册、/console
+├── app/(payload)/      Payload 管理后台和 REST API（自动生成，一般不用改）
+├── collections/        数据模型：MCP 服务、AI 工具、分类、用户、图片
+├── globals/            站点设置
+├── components/         前台组件（listing 列表、detail 详情、layout 导航页脚、ui 基础组件）
+├── lib/                数据查询、客户端配置生成、工具函数
+└── seed/               示例数据
+```
 
-  Users are auth-enabled collections that have access to the admin panel.
+## 进度
 
-  For additional help, see the official [Auth Example](https://github.com/payloadcms/payload/tree/3.x/examples/auth) or the [Authentication](https://payloadcms.com/docs/authentication/overview#authentication-overview) docs.
-
-- #### Media
-
-  This is the uploads enabled collection. It features pre-configured sizes, focal point and manual resizing to help you manage your pictures.
-
-### Docker
-
-Alternatively, you can use [Docker](https://www.docker.com) to spin up this template locally. To do so, follow these steps:
-
-1. Follow [steps 1 and 2 from above](#development), the docker-compose file will automatically use the `.env` file in your project root
-1. Next run `docker-compose up`
-1. Follow [steps 4 and 5 from above](#development) to login and create your first admin user
-
-That's it! The Docker instance will help you get up and running quickly while also standardizing the development environment across your teams.
-
-## Questions
-
-If you have any issues or questions, reach out to us on [Discord](https://discord.com/invite/payload) or start a [GitHub discussion](https://github.com/payloadcms/payload/discussions).
+- [x] 前台：MCP 首页、详情页、AI 工具页、登录注册、用户中心
+- [x] 后台：产品上架、分类、用户、站点设置
+- [ ] 卡密：批量生成、导出、兑换，积分流水
+- [ ] 积分扣减接口：给 MCP 网关和 AI 工具调用，按次扣积分
+- [ ] 部署方案

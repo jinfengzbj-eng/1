@@ -148,6 +148,7 @@
   --color-credit-soft: var(--credit-soft);
   --color-free: var(--free);
   --color-free-soft: var(--free-soft);
+  --color-card-line: var(--card-line);
   --color-seg-track: var(--seg-track);
   --color-seg-on: var(--seg-on);
   --color-code: var(--code-bg);

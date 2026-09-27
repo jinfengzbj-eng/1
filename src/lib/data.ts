@@ -175,9 +175,10 @@ export const getTags = cache(async (kind: ListingKind) => {
     limit: 1000,
     depth: 0,
   })
-  const tags = new Set<string>()
-  for (const doc of docs) for (const t of doc.tags ?? []) tags.add(t)
-  return [...tags]
+  // 按使用次数排序，常用标签在前
+  const counts = new Map<string, number>()
+  for (const doc of docs) for (const t of doc.tags ?? []) counts.set(t, (counts.get(t) ?? 0) + 1)
+  return [...counts].sort((a, b) => b[1] - a[1]).map(([tag]) => tag)
 })
 
 export async function getMcpBySlug(slug: string) {

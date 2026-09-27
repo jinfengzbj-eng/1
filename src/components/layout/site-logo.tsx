@@ -9,10 +9,12 @@ export function SiteLogo({
   brand,
   size = 34,
   className,
+  textClassName,
 }: {
   brand: SiteBrand
   size?: number
   className?: string
+  textClassName?: string
 }) {
   const radius = Math.round(size * 0.29)
   return (
@@ -41,7 +43,7 @@ export function SiteLogo({
           {Array.from(brand.name.trim())[0] ?? 'M'}
         </span>
       )}
-      <span className="text-lg font-bold tracking-tight">{brand.name}</span>
+      <span className={cn('text-lg font-bold tracking-tight', textClassName)}>{brand.name}</span>
     </Link>
   )
 }

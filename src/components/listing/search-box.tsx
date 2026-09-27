@@ -7,17 +7,21 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useDebounce } from 'use-debounce'
 
 import { Button } from '@/components/ui/button'
+import { useIsMobile } from '@/hooks/use-is-mobile'
 import { createUrl } from '@/lib/utils'
 
 export default function SearchBox({
   urlPrefix,
   placeholder,
+  mobilePlaceholder,
 }: {
   urlPrefix: string
   placeholder: string
+  mobilePlaceholder: string
 }) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const isMobile = useIsMobile()
   const [query, setQuery] = useState(searchParams.get('q') ?? '')
   const [debouncedQuery] = useDebounce(query, 300)
   const lastExecuted = useRef(searchParams.get('q') ?? '')
@@ -53,28 +57,30 @@ export default function SearchBox({
   }, [debouncedQuery, run])
 
   return (
+    // 手机端是 iOS 式的灰底搜索框，输入即搜，不需要按钮；桌面端是玻璃搜索框
     <form
       role="search"
-      className="glass mx-auto flex h-13 w-full max-w-[720px] items-center gap-3 rounded-[18px] pr-1.5 pl-4 md:h-15 md:rounded-[20px] md:pr-2 md:pl-5"
+      className="mx-auto flex h-11 w-full max-w-[720px] items-center gap-2 rounded-[14px] bg-seg-track px-3.5 md:glass md:h-15 md:gap-3 md:rounded-[20px] md:pr-2 md:pl-5"
       onSubmit={(event) => {
         event.preventDefault()
         run(query)
       }}
     >
-      <SearchIcon className="size-5 shrink-0 text-muted-foreground" aria-hidden />
+      <SearchIcon className="size-[18px] shrink-0 text-muted-foreground md:size-5" aria-hidden />
       <label htmlFor="listing-search" className="sr-only">
         搜索
       </label>
       <input
         id="listing-search"
         type="search"
-        placeholder={placeholder}
+        placeholder={isMobile ? mobilePlaceholder : placeholder}
+        enterKeyHint="search"
         autoComplete="off"
         value={query}
         onChange={(event) => setQuery(event.target.value)}
-        className="h-11 min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground"
+        className="h-10 min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground md:h-11"
       />
-      <Button type="submit" className="h-10 rounded-[14px] px-5 md:h-11 md:px-5.5">
+      <Button type="submit" className="h-11 rounded-[14px] px-5.5 max-md:hidden">
         搜索
       </Button>
     </form>

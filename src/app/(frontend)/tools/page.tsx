@@ -18,8 +18,10 @@ export default async function ToolsPage({ searchParams }: { searchParams: Listin
           title={settings.toolsHeroTitle}
           highlight={settings.toolsHeroHighlight}
           subtitle={settings.toolsHeroSubtitle}
+          mobileTitle="AI 工具"
           urlPrefix="/tools"
           searchPlaceholder="搜索 AI 工具，比如：音乐、绘画、配音"
+          mobileSearchPlaceholder="音乐、绘画、配音…"
         />
       }
     />

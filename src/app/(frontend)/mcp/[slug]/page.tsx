@@ -1,5 +1,5 @@
 // 信息结构参考 Mkdirs 详情页（Apache-2.0）https://github.com/MkThingsHQ/mkdirs
-import { CheckIcon, CopyIcon, WrenchIcon } from 'lucide-react'
+import { CheckIcon, CopyIcon, LayoutGridIcon, WrenchIcon } from 'lucide-react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -9,17 +9,25 @@ import { ConfigTabs } from '@/components/detail/config-tabs'
 import {
   DetailBreadcrumb,
   DetailHeader,
-  InfoList,
   Panel,
   RelatedList,
   TagList,
 } from '@/components/detail/detail-parts'
-import { MobileActionBar, PriceCard } from '@/components/detail/price-card'
+import { DetailTopBar } from '@/components/detail/detail-top-bar'
+import { MobileCollapse } from '@/components/detail/mobile-collapse'
+import {
+  type DetailAction,
+  InfoStrip,
+  MobileDetailHeader,
+  priceStripItem,
+  type StripItem,
+} from '@/components/detail/mobile-detail'
+import { PriceCard } from '@/components/detail/price-card'
 import { Markdown } from '@/components/shared/markdown'
 import { Button } from '@/components/ui/button'
 import { getCurrentUser, getMcpBySlug, getRelated, getSiteSettings, toCard } from '@/lib/data'
 import { buildClientConfigs } from '@/lib/mcp-config'
-import { formatDate } from '@/lib/utils'
+import { formatDate, formatShortDate } from '@/lib/utils'
 
 type Props = { params: Promise<{ slug: string }> }
 
@@ -42,6 +50,8 @@ export default async function McpDetailPage({ params }: Props) {
   const card = toCard(doc, 'mcp')
   const tools = doc.tools ?? []
   const credits = user ? (user.credits ?? 0) : null
+  const price = doc.creditsPerCall
+  const loginNext = `/mcp/${doc.slug}`
   const configs = buildClientConfigs({
     slug: doc.slug,
     endpoint: doc.endpoint,
@@ -53,10 +63,28 @@ export default async function McpDetailPage({ params }: Props) {
     ...(doc.version ? [{ label: '版本', value: doc.version }] : []),
     { label: '更新时间', value: formatDate(doc.updatedAt) },
   ]
-  const connect = { label: '立即接入', href: '#connect' }
+  const connect: DetailAction = { label: '立即接入', href: '#connect' }
+  // 手机端的主按钮：登录了就跳到接入配置，没登录先去登录
+  const mobileAction: DetailAction = user
+    ? { label: '接入', href: '#connect' }
+    : { label: '登录后接入', href: `/login?next=${encodeURIComponent(loginNext)}` }
+  const strip: StripItem[] = [
+    priceStripItem(price),
+    ...(tools.length > 0 ? [{ label: '工具', value: tools.length, sub: '个' }] : []),
+    {
+      label: '分类',
+      value: <LayoutGridIcon className="size-5" strokeWidth={1.9} />,
+      sub: card.category?.name ?? '未分类',
+    },
+    doc.version
+      ? { label: '版本', value: doc.version, sub: formatShortDate(doc.updatedAt) }
+      : { label: '更新', value: formatShortDate(doc.updatedAt), sub: '最近更新' },
+  ]
 
   return (
-    <Container className="mt-6 flex flex-col gap-6 md:mt-10 md:gap-8">
+    <Container className="flex flex-col gap-6 pt-16 md:mt-10 md:gap-8 md:pt-0">
+      <DetailTopBar item={card} listHref="/" action={mobileAction} />
+
       <DetailBreadcrumb
         rootLabel="MCP 服务"
         rootHref="/"
@@ -64,7 +92,14 @@ export default async function McpDetailPage({ params }: Props) {
         name={doc.name}
       />
 
-      <div className="grid grid-cols-1 items-start gap-8 md:grid-cols-[minmax(0,1fr)_392px]">
+      <MobileDetailHeader
+        item={card}
+        action={mobileAction}
+        priceText={price > 0 ? `${price} 积分 / 次` : '免费'}
+      />
+      <InfoStrip items={strip} />
+
+      <div className="grid grid-cols-[minmax(0,1fr)_392px] items-start gap-8 max-md:hidden">
         <DetailHeader
           item={card}
           chips={[card.category?.name, doc.version ? `v${doc.version}` : null].filter(
@@ -89,23 +124,23 @@ export default async function McpDetailPage({ params }: Props) {
             </>
           }
         />
-        <div className="hidden md:block">
-          <PriceCard
-            price={doc.creditsPerCall}
-            unitLabel="每次调用消耗"
-            credits={credits}
-            signupBonus={settings.signupBonus ?? 0}
-            loginNext={`/mcp/${doc.slug}`}
-            action={connect}
-            rows={infoRows}
-          />
-        </div>
+        <PriceCard
+          price={price}
+          unitLabel="每次调用消耗"
+          credits={credits}
+          signupBonus={settings.signupBonus ?? 0}
+          loginNext={loginNext}
+          action={connect}
+          rows={infoRows}
+        />
       </div>
 
       <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-[minmax(0,1fr)_392px] md:gap-8">
         <div className="flex flex-col gap-6">
-          <Panel title="介绍">
-            <Markdown source={doc.description} />
+          <Panel title="介绍" mobileCard={false}>
+            <MobileCollapse>
+              <Markdown source={doc.description} />
+            </MobileCollapse>
           </Panel>
 
           {tools.length > 0 && (
@@ -123,35 +158,46 @@ export default async function McpDetailPage({ params }: Props) {
             </Panel>
           )}
 
-          <section
+          {/* 手机端排在最前面：打开页面就能复制配置 */}
+          <Panel
+            title="接入配置"
             id="connect"
-            className="surface flex scroll-mt-28 flex-col gap-4 rounded-3xl p-6 md:p-8"
-          >
-            <div className="flex items-center justify-between gap-4">
-              <h2 className="text-xl font-bold tracking-tight">接入配置</h2>
-              {user ? (
-                <span className="flex items-center gap-1.5 text-[13px] text-free">
-                  <CheckIcon className="size-4" />
-                  已自动填入你的密钥
+            className="max-md:order-first"
+            action={
+              user ? (
+                <span className="flex items-center gap-1 text-xs text-free md:gap-1.5 md:text-[13px]">
+                  <CheckIcon className="size-3.5 md:size-4" />
+                  <span className="md:hidden">已填入你的密钥</span>
+                  <span className="max-md:hidden">已自动填入你的密钥</span>
                 </span>
               ) : (
                 <Link
-                  href={`/login?next=/mcp/${doc.slug}`}
-                  className="text-[13px] text-brand hover:underline"
+                  href={`/login?next=${encodeURIComponent(loginNext)}`}
+                  className="text-xs text-brand hover:underline md:text-[13px]"
                 >
                   登录后自动填入密钥
                 </Link>
+              )
+            }
+          >
+            <div className="flex flex-col gap-3">
+              <ConfigTabs configs={configs} />
+              {credits !== null && (
+                <p className="text-center text-xs text-muted-foreground tabular-nums md:hidden">
+                  {price > 0 ? `每次调用扣 ${price} 积分 · ` : '免费使用，不扣积分 · '}
+                  当前余额 {credits}
+                  {' · '}
+                  <Link href="/console#redeem" className="text-brand">
+                    兑换卡密
+                  </Link>
+                </p>
               )}
             </div>
-            <ConfigTabs configs={configs} />
-          </section>
+          </Panel>
         </div>
 
         <div className="flex flex-col gap-6">
-          <Panel title="信息" className="md:hidden">
-            <InfoList rows={infoRows} />
-          </Panel>
-          <Panel title="标签">
+          <Panel title="标签" mobileCard={false}>
             <TagList tags={card.tags} listHref="/" />
           </Panel>
           <Panel title="同类服务">
@@ -159,14 +205,6 @@ export default async function McpDetailPage({ params }: Props) {
           </Panel>
         </div>
       </div>
-
-      <MobileActionBar
-        price={doc.creditsPerCall}
-        unit="次"
-        credits={credits}
-        loginNext={`/mcp/${doc.slug}`}
-        action={connect}
-      />
     </Container>
   )
 }

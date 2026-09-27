@@ -20,7 +20,10 @@ export function DetailBreadcrumb({
   name: string
 }) {
   return (
-    <nav aria-label="位置" className="flex items-center gap-2 text-sm text-muted-foreground">
+    <nav
+      aria-label="位置"
+      className="flex items-center gap-2 text-sm text-muted-foreground max-md:hidden"
+    >
       <Link href={rootHref} className="hover:text-foreground">
         {rootLabel}
       </Link>
@@ -89,25 +92,41 @@ export function DetailHeader({
   )
 }
 
-/** 内容层面板：实心 */
+/**
+ * 内容层面板：实心。
+ * 桌面端标题在卡片里；手机端是 iOS 分组列表的样子，标题在卡片上方，
+ * mobileCard 为 false 时内容直接放在背景上（比如介绍正文、标签）。
+ */
 export function Panel({
   title,
   id,
+  action,
+  mobileCard = true,
   className,
   children,
 }: {
   title: string
   id?: string
+  action?: ReactNode
+  mobileCard?: boolean
   className?: string
   children: ReactNode
 }) {
   return (
     <section
       id={id}
-      className={cn('surface flex scroll-mt-28 flex-col gap-4 rounded-3xl p-6 md:p-8', className)}
+      className={cn(
+        'flex scroll-mt-20 flex-col gap-2.5 md:surface md:scroll-mt-28 md:gap-4 md:rounded-3xl md:p-8',
+        className,
+      )}
     >
-      <h2 className="text-xl font-bold tracking-tight">{title}</h2>
-      {children}
+      <div className="flex items-center justify-between gap-4 px-1 md:px-0">
+        <h2 className="text-xl font-bold tracking-tight">{title}</h2>
+        {action}
+      </div>
+      <div className={cn(mobileCard && 'max-md:surface max-md:rounded-[20px] max-md:p-4')}>
+        {children}
+      </div>
     </section>
   )
 }

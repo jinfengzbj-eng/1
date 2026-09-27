@@ -2,7 +2,7 @@
 import { Suspense } from 'react'
 
 import Container from '@/components/container'
-import { CategoryChips, CategorySidebar, FilterBar } from '@/components/listing/filter-bar'
+import { CategorySidebar, FilterBar, MobileFilterBar } from '@/components/listing/filter-bar'
 import { listingPaths } from '@/components/listing/listing-card'
 import ListingGrid from '@/components/listing/listing-grid'
 import CustomPagination from '@/components/shared/pagination'
@@ -41,10 +41,10 @@ export default async function ListingPage({
   ])
 
   return (
-    <Container className="mt-10 flex flex-col gap-10 md:mt-18 md:gap-18">
+    <Container className="mt-1 flex flex-col gap-3 md:mt-18 md:gap-18">
       {hero}
 
-      <div className="flex flex-col gap-4 md:flex-row md:items-start md:gap-7">
+      <div className="flex flex-col gap-3 md:flex-row md:items-start md:gap-7">
         <aside className="hidden w-62 shrink-0 md:sticky md:top-28 md:block">
           <CategorySidebar
             base={base}
@@ -55,12 +55,13 @@ export default async function ListingPage({
           />
         </aside>
 
-        <section className="flex min-w-0 flex-1 flex-col gap-4 md:gap-4.5">
-          <CategoryChips
+        <section className="flex min-w-0 flex-1 flex-col gap-3 md:gap-4.5">
+          <MobileFilterBar
             base={base}
             params={params}
             categories={categories.items}
-            allLabel={allLabel}
+            tags={tags}
+            totalDocs={totalDocs}
           />
           <FilterBar base={base} params={params} tags={tags} totalDocs={totalDocs} />
           <ListingGrid items={items} />

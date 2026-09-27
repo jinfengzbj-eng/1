@@ -1,14 +1,9 @@
 import ListingCard, { ListingCardSkeleton } from '@/components/listing/listing-card'
+import { ListingRow } from '@/components/listing/listing-row'
 import type { ListingCardData } from '@/lib/data'
-import { cn } from '@/lib/utils'
 
-export default function ListingGrid({
-  items,
-  className,
-}: {
-  items: ListingCardData[]
-  className?: string
-}) {
+/** 产品列表：手机端是一行一个的分组列表，桌面端是卡片网格 */
+export default function ListingGrid({ items }: { items: ListingCardData[] }) {
   if (items.length === 0) {
     return (
       <div className="surface flex h-40 w-full flex-col items-center justify-center gap-1 rounded-[22px] text-center">
@@ -18,11 +13,18 @@ export default function ListingGrid({
     )
   }
   return (
-    <div className={cn('grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-5 lg:grid-cols-3', className)}>
-      {items.map((item) => (
-        <ListingCard key={`${item.kind}-${item.id}`} item={item} />
-      ))}
-    </div>
+    <>
+      <ul className="surface overflow-hidden rounded-[20px] md:hidden">
+        {items.map((item) => (
+          <ListingRow key={`${item.kind}-${item.id}`} item={item} />
+        ))}
+      </ul>
+      <div className="grid grid-cols-2 gap-5 max-md:hidden lg:grid-cols-3">
+        {items.map((item) => (
+          <ListingCard key={`${item.kind}-${item.id}`} item={item} />
+        ))}
+      </div>
+    </>
   )
 }
 

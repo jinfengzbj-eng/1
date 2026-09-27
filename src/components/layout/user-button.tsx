@@ -15,6 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { cn } from '@/lib/utils'
 
 export type NavUser = {
   email: string
@@ -27,7 +28,11 @@ export function CreditsPill({ credits, compact }: { credits: number; compact?: b
   return (
     <Link
       href="/console"
-      className="flex h-10 items-center gap-1.5 rounded-full bg-credit-soft px-3.5 text-sm font-semibold text-credit tabular-nums transition-opacity hover:opacity-85"
+      aria-label={compact ? `积分余额 ${credits}` : undefined}
+      className={cn(
+        'flex items-center gap-1.5 rounded-full bg-credit-soft text-sm font-semibold text-credit tabular-nums transition-opacity hover:opacity-85',
+        compact ? 'h-8.5 px-3' : 'h-10 px-3.5',
+      )}
     >
       <CoinsIcon className="size-4" />
       <span>{credits.toLocaleString('zh-CN')}</span>
@@ -36,7 +41,7 @@ export function CreditsPill({ credits, compact }: { credits: number; compact?: b
   )
 }
 
-export function UserButton({ user }: { user: NavUser }) {
+export function UserButton({ user, compact }: { user: NavUser; compact?: boolean }) {
   const router = useRouter()
   const [pending, startTransition] = useTransition()
   const displayName = user.nickname || user.email.split('@')[0]
@@ -47,8 +52,13 @@ export function UserButton({ user }: { user: NavUser }) {
         className="rounded-full outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
         aria-label="账户菜单"
       >
-        <Avatar className="size-10">
-          <AvatarFallback className="bg-brand-soft text-[15px] font-semibold text-brand">
+        <Avatar className={compact ? 'size-8.5' : 'size-10'}>
+          <AvatarFallback
+            className={cn(
+              'bg-brand-soft font-semibold text-brand',
+              compact ? 'text-sm' : 'text-[15px]',
+            )}
+          >
             {Array.from(displayName)[0]?.toUpperCase()}
           </AvatarFallback>
         </Avatar>

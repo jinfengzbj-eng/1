@@ -3,9 +3,8 @@ import Link from 'next/link'
 import type { ComponentProps, ReactNode } from 'react'
 
 import { InfoList } from '@/components/detail/detail-parts'
+import type { DetailAction } from '@/components/detail/mobile-detail'
 import { Button } from '@/components/ui/button'
-
-export type DetailAction = { label: string; href: string; external?: boolean }
 
 // 作为 Button asChild 的子元素时，按钮样式通过 props 传进来，必须转交给 Link
 function ActionLink({
@@ -25,7 +24,7 @@ function ActionLink({
   )
 }
 
-/** 价格与接入卡片：浮在旁边的操作区，用厚玻璃 */
+/** 价格与接入卡片（桌面端）：浮在旁边的操作区，用厚玻璃 */
 export function PriceCard({
   price,
   unitLabel,
@@ -105,51 +104,5 @@ export function PriceCard({
         </div>
       )}
     </aside>
-  )
-}
-
-/** 手机端底部操作栏：价格 + 主操作，厚玻璃 */
-export function MobileActionBar({
-  price,
-  unit,
-  credits,
-  loginNext,
-  action,
-}: {
-  price: number
-  unit: string
-  credits: number | null
-  loginNext: string
-  action: DetailAction
-}) {
-  return (
-    <div
-      className="glass-thick fixed inset-x-4 z-40 flex h-19 items-center justify-between gap-3 rounded-[26px] pr-2.5 pl-5 md:hidden"
-      style={{ bottom: 'calc(20px + env(safe-area-inset-bottom, 0px))' }}
-    >
-      <div className="flex flex-col gap-0.5 tabular-nums">
-        {price > 0 ? (
-          <span className="flex items-baseline gap-1">
-            <span className="text-2xl font-bold tracking-tight">{price}</span>
-            <span className="text-sm text-ink-2">积分 / {unit}</span>
-          </span>
-        ) : (
-          <span className="text-2xl font-bold text-free">免费</span>
-        )}
-        <span className="text-xs text-muted-foreground">
-          {credits !== null ? `余额 ${credits} 积分` : '登录后可使用'}
-        </span>
-      </div>
-      <Button asChild className="h-13.5 rounded-[18px] px-6.5 text-base">
-        {credits !== null ? (
-          <ActionLink action={action}>
-            {action.label}
-            <ArrowRightIcon />
-          </ActionLink>
-        ) : (
-          <Link href={`/login?next=${encodeURIComponent(loginNext)}`}>登录</Link>
-        )}
-      </Button>
-    </div>
   )
 }

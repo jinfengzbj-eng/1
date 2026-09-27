@@ -18,9 +18,15 @@
 
 蓝白主色 + 静态毛玻璃，参照 iOS 27 的层级原则：玻璃只用在浮起来的导航层（导航栏、搜索、筛选、价格卡、手机底栏），卡片和正文保持实心。颜色、材质、圆角等规范见 [docs/design.md](docs/design.md)。
 
-| 深色模式 | 手机 |
-|---|---|
-| ![深色首页](docs/screenshots/15-home-dark.png) | ![手机首页](docs/screenshots/09-mobile-home.png) |
+手机端按 App Store 的列表和产品页排版：产品一行一个，筛选收进底部弹层，详情页最上面就是“接入”按钮。
+
+| 手机首页 | 手机筛选 | 手机详情页 |
+|---|---|---|
+| ![手机首页](docs/screenshots/09-mobile-home.png) | ![手机筛选](docs/screenshots/18-mobile-filter.png) | ![手机详情页](docs/screenshots/10-mobile-detail.png) |
+
+| 深色模式 |
+|---|
+| ![深色首页](docs/screenshots/15-home-dark.png) |
 
 ## 技术栈
 
@@ -91,6 +97,7 @@ src/
 
 - [x] 前台：MCP 首页、详情页、AI 工具页、登录注册、用户中心
 - [x] 蓝白毛玻璃设计：浅色 / 深色、电脑 / 手机
+- [x] 手机端精简：一行一个的列表、底部筛选弹层、App Store 式详情页
 - [x] 后台：产品上架、分类、用户、站点设置
 - [ ] 卡密：批量生成、导出、兑换，积分流水
 - [ ] 积分扣减接口：给 MCP 网关和 AI 工具调用，按次扣积分

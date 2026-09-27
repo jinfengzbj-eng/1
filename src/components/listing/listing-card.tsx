@@ -6,14 +6,14 @@ import { PriceTag } from '@/components/listing/price-tag'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { ListingCardData } from '@/lib/data'
 
-const BADGE_LABELS = { new: '新品', hot: '热门', beta: '内测' } as const
+export const BADGE_LABELS = { new: '新品', hot: '热门', beta: '内测' } as const
 
 export const listingPaths = {
   mcp: { list: '/', detail: (slug: string) => `/mcp/${slug}` },
   tool: { list: '/tools', detail: (slug: string) => `/tools/${slug}` },
 }
 
-/** 产品卡片：内容层，实心，整张卡片可点 */
+/** 产品卡片（桌面端）：内容层，实心，整张卡片可点 */
 export default function ListingCard({ item }: { item: ListingCardData }) {
   const meta = [item.category?.name, item.toolsCount > 0 ? `${item.toolsCount} 个工具` : null]
     .filter(Boolean)
